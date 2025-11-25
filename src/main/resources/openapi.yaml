@@ -1,0 +1,565 @@
+openapi: 3.0.3
+info:
+  title: User and External Project Management API
+  description: RESTful API for managing users and their external projects
+  version: 1.0.0
+  contact:
+    name: API Support
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: users
+    description: User management operations
+  - name: external-projects
+    description: External project management operations
+
+paths:
+  /api/users:
+    post:
+      tags:
+        - users
+      summary: Create a new user
+      description: Creates a new user account. This endpoint is public and does not require authentication.
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict - user already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/{id}:
+    get:
+      tags:
+        - users
+      summary: Get user by ID
+      description: Retrieves a user by their ID. Requires authentication.
+      operationId: getUserById
+      security:
+        - httpBasic: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: User ID
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - users
+      summary: Update user
+      description: Updates an existing user. Requires authentication.
+      operationId: updateUser
+      security:
+        - httpBasic: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: User ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict - email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - users
+      summary: Delete user
+      description: Deletes a user by their ID. Requires authentication.
+      operationId: deleteUser
+      security:
+        - httpBasic: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: User ID
+      responses:
+        '204':
+          description: User deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/{userId}/external-projects:
+    post:
+      tags:
+        - external-projects
+      summary: Create external project
+      description: Creates a new external project for a user. Requires authentication.
+      operationId: addExternalProject
+      security:
+        - httpBasic: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: User ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExternalProjectRequest'
+      responses:
+        '201':
+          description: External project created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalProjectDTO'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Conflict - external project already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags:
+        - external-projects
+      summary: Get all external projects for user
+      description: Retrieves all external projects for a specific user. Requires authentication.
+      operationId: getExternalProjects
+      security:
+        - httpBasic: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: User ID
+      responses:
+        '200':
+          description: List of external projects
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExternalProjectDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/users/{userId}/external-projects/{projectId}:
+    get:
+      tags:
+        - external-projects
+      summary: Get external project by ID
+      description: Retrieves a specific external project for a user. Requires authentication.
+      operationId: getExternalProject
+      security:
+        - httpBasic: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: User ID
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 200
+          description: External project ID
+      responses:
+        '200':
+          description: External project found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalProjectDTO'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: External project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - external-projects
+      summary: Update external project
+      description: Updates an existing external project. Requires authentication.
+      operationId: updateExternalProject
+      security:
+        - httpBasic: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: User ID
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 200
+          description: External project ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateExternalProjectRequest'
+      responses:
+        '200':
+          description: External project updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExternalProjectDTO'
+        '400':
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: External project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - external-projects
+      summary: Delete external project
+      description: Deletes an external project. Requires authentication.
+      operationId: deleteExternalProject
+      security:
+        - httpBasic: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+          description: User ID
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            maxLength: 200
+          description: External project ID
+      responses:
+        '204':
+          description: External project deleted successfully
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: External project not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    httpBasic:
+      type: http
+      scheme: basic
+      description: HTTP Basic Authentication using user email and password
+
+  schemas:
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 200
+          description: User email address
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          minLength: 6
+          maxLength: 129
+          description: User password
+          example: password123
+        name:
+          type: string
+          maxLength: 120
+          nullable: true
+          description: User name
+          example: John Doe
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 200
+          description: User email address
+          example: user@example.com
+        password:
+          type: string
+          format: password
+          minLength: 6
+          maxLength: 129
+          description: User password
+          example: newpassword123
+        name:
+          type: string
+          maxLength: 120
+          nullable: true
+          description: User name
+          example: John Doe Updated
+
+    UserDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: User ID
+          example: 1
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: user@example.com
+        name:
+          type: string
+          nullable: true
+          description: User name
+          example: John Doe
+        externalProjects:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExternalProjectDTO'
+          nullable: true
+          description: List of external projects associated with the user
+          uniqueItems: false
+
+    CreateExternalProjectRequest:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          maxLength: 200
+          description: External project ID
+          example: project-123
+        name:
+          type: string
+          maxLength: 120
+          description: External project name
+          example: My External Project
+
+    UpdateExternalProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 120
+          nullable: true
+          description: External project name
+          example: Updated Project Name
+
+    ExternalProjectDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          description: External project ID
+          example: project-123
+        name:
+          type: string
+          description: External project name
+          example: My External Project
+        userId:
+          type: integer
+          format: int64
+          description: User ID that owns this project
+          example: 1
+
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp when the error occurred
+          example: "2024-01-15T10:30:00"
+        status:
+          type: integer
+          description: HTTP status code
+          example: 404
+        error:
+          type: string
+          description: Error type
+          example: Not Found
+        message:
+          type: string
+          description: Error message
+          example: "User not found with id: 999"
+        path:
+          type: string
+          description: Request path
+          example: /api/users/999
+        details:
+          type: array
+          items:
+            type: string
+          nullable: true
+          description: Additional error details
+          example: ["Email is required", "Password must be between 6 and 129 characters"]
+
